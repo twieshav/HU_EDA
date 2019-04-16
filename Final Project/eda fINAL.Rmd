@@ -1,7 +1,7 @@
 ---
-title: "Exploratory Data Analysis Final Project"
+title: "Exploratory Data Analysis - Spring 2019"
 author: "Twiesha Vachhrajani"
-date: "April 8, 2019"
+date: "April 16, 2019"
 output: html_document
 ---
 
@@ -16,84 +16,89 @@ This dataset includes information regarding the sale of 97 bike models that are 
 ## Questions posed
 
 The questions arising from a perusal of the data are:
-1. Are the total sales related to the trail the bike is appropriate for?
+1. Are sales in a city related to the trail the bike is appropriate for?
 2. Is there a significant difference between the sales of aluminium frame bikes and carbon frame bikes?
 3. Is there a relationship between the price of the bike and sale numbers in these 30 stores?
 
 ## Data Analysis
 
-In order to evaluate the data, we must first set the working directory and import the data using the read.csv function.
+In order to evaluate the data, we must first set the working directory and import the data using the `r read.csv` function.
 
-```{ r ECHO = TRUE}
+
+```{ r include = TRUE}
 library(knitr)
 library(readr)
-setwd("C:/Users/twish/OneDrive/Documents/GitHub/HU_EDA/Final Project")
-bikevendors <- read.csv("bikeVendors.csv")
+library(tidyverse)
+setwd("C:/Users/twish/OneDrive/Documents/GitHub/HU_EDA/Data")
+bikeVendors <- read.csv2("bikeVendors.csv")
 ```
 
-Once this data is imported, we look to the summary of the data using both the str function, which shows us the types of data characters in each column, and the summary function, which shows the number of values and the quartiles.
+Once this data is imported, we look to the summary of the data using both the `r str` function, which shows us the types of data characters in each column, and `r summary` function, which shows the number of values and the quartiles.
 
-```{r ECHO = TRUE}
-bikevendors <- read.csv("bikeVendors.csv")
-summary(bikevendors)
-str(bikevendors)
+```{r include = TRUE}
+str(bikeVendors)
+summary(bikeVendors)
 ```
 
-We can check the number of rows using the rnow function which gives us a result of `r nrow(bikevendors)`, and the columns using the ncol function which gives us the result of `r ncol(bikevendors)`. The codes can be found below.
+We can check the number of rows and columns
 
-```{r ECHO = TRUE}
-nrow(bikevendors)
-ncol(bikevendors)
+```{r include = TRUE}
+nrow(bikeVendors)
+
+ncol(bikeVendors)
 ```
+Hence, there are 97 rows and 35 columns. 
 
 Before proceeding, we must check for missing data. This can be done by checking for the total number of missing values.
 
-```{r ECHO = TRUE}
-sum(is.na(bikevendors))
+```{r include = TRUE}
+sum(is.na(bikeVendors))
 ```
 
 We see that no values are missing. 
 
 Turning to our first question, we can look at the relationship between a  terrain and the sales of the bike in a city. To begin, we create a new data frame, df1, to better analyze. This dataframe will include the bike terrain (noted as category 1 in the dataset), the type of trail (category 2), and the sales data for the 30 cities. We do this by creating a new dataframe and deleting unneccesary columns.
 
-```{r ECHO = TRUE}
-bikevendors$Total <- rowSums( bikevendors[,6:35] )
-df1 <- bikevendors
+```{r inclue+TRUE}
+ df1 <- bikeVendors
 df1 <- df1[, -1] 
 df1 <- df1[, -2]
 df1 <- df1[, -c(2:3)]
 head(df1)
 ```
 
-In order to ease our analysis, we can first rename Category 1 to terrain, use the total sales column for all the sales of a particular bike (created above), and then plot a chart to see a relationship between the terrain and sales.
+In order to ease our analysis, we can first rename Category 1 to terrain, create total sales column for all the sales of a particular bike, and then plot a correlation to see a correlation between the terrain and sales.
 
-```{r ECHO = TRUE}
+```{r include = TRUE}
 names(df1)[1] <- "terrain"
+library(tidyr)
 library(ggplot2)
-p <- ggplot() +
-  geom_point(data = df1, aes(x=Total, y=terrain)) + 
-  geom_smooth(data=df1, aes(x=Total, y=terrain), fill="blue",
-              colour="darkblue", size=1)
-plot(p)
+
+df1 %>%
+  gather(-terrain, key = "var", value = "value") %>% 
+  ggplot(aes(x = value, y = terrain)) +
+  facet_wrap(~ var, scales = "free") +
+  geom_point() +
+  stat_smooth()
 ```
 
-This shows a clear relation between the terrain and sales, showing that the bikes made for the roads have much more total sales than bikes for mountain terrains.
+This shows a clear relation between the terrain and sales. For example, in the Ithaca mountain range store, a higher correlation exists between mountain bikes sold in the area.
 
 Next, to answer our second question, we look at the total sales of carbon fiber bikes and aluminium bikes. To do this, we will first create a new column titled Total, so we have the total sales. Then we will create new dataframes for carbon bikes and aluminium bikes.
 
-```{r ECHO = TRUE}
-bikevendors$Total <- rowSums( bikevendors[,6:35] )
+```{r INCLUDE = TRUE}
+bikeVendors$Total <- rowSums( bikeVendors[,6:35] )
 library(dplyr)
-carbon <- filter(bikevendors, bikevendors$frame == "Carbon")
+carbon <- filter(bikeVendors, bikeVendors$frame == "Carbon")
 head(carbon)
 
-aluminum<- filter(bikevendors, bikevendors$frame == "Aluminum")
+aluminum<- filter(bikeVendors, bikeVendors$frame == "Aluminum")
 head(aluminum)
 ```
 
 We can then edit our new datasets to include only the frame type and the total sales, to make it easier to plot using bar plots.
 
-``` {r ECHO = TRUE}
+``` {r include = TRUE}
 keeps <- c("frame", "Total")
 carbon1 = carbon[keeps]
 head(carbon1)
@@ -111,16 +116,16 @@ The plot shown above clearly marks that aluminium bikes are sold more frequently
 
 Turning to our third questions, we look at the relationship between the price of the bike and the sales numbers. First, we can make a new column combining the total sales, names Total.
 
-```{r ECHO = TRUE}
-bikevendors$Total <- rowSums( bikevendors[,6:35] )
-head(bikevendors$Total)
+```{r include=TRUE}
+bikeVendors$Total <- rowSums( bikeVendors[,6:35] )
+head(bikeVendors$Total)
 ```
 
 
 Then, we can plot the new column, Total, against the price column, to see whether the price affects the total sales.
 
-```{r ECHO = TRUE}
-ggplot(bikevendors, (aes(x=price, y=Total))) +
+```{r include = TRUE}
+ggplot(bikeVendors, (aes(x=price, y=Total))) +
   stat_binhex(colour="white") +
   theme_bw() +
   scale_fill_gradient(low="yellow", high="blue") +
@@ -129,6 +134,11 @@ ggplot(bikevendors, (aes(x=price, y=Total))) +
 
 This plot shows us that the sales for most models are higher when the price is below $5000, and the sales decrease with the increase in price. The higher numbers of sales are marked using the blue dots, while the lower numbers of sales are represented by the yellow dots.
 
-This concludes the exploratory data analysis of the Bike Vendors file.
+```{r setup, include=FALSE}```
 
-```{r setup, include=TRUE}```
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
